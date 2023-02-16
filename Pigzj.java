@@ -18,7 +18,7 @@ class Pigzj {
         if ((4 * numProcesses ) < temp) {
             System.err.println("Max Processors Exceeded: Must have less than " + (4 * numProcesses) + " processors.");
             System.err.println("Setting default processors to " + numProcesses);
-        } else {
+        } else if (0 < temp) {
             numProcesses = temp;
         }
         System.err.println("numProcessors initialized to " + numProcesses);
@@ -31,6 +31,6 @@ class Pigzj {
     public static void main(String[] args) throws Exception, IOException {
         Pigzj pj = new Pigzj(new Args(args));
 
-        
+
     }
 }
