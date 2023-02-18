@@ -101,7 +101,7 @@ class Pigzj extends FilterOutputStream {
             throw new RuntimeException(e);
         }
 
-        close();
+        // close();
     }
 
     // See hack inside close()
@@ -116,13 +116,7 @@ class Pigzj extends FilterOutputStream {
         }
 
         readTask.finish();
-        
-        // FIXME Hack to get newline to print
-        i++;
-        if (i < 2) {
-            System.err.println("close() else filter() i: " + i);
-            filter();
-        } 
+        filter();
 
         if(readTask.getUncompressedSize() == 0) {
             System.err.println("close(): readTask.getUncompressedSize() == 0 ");
@@ -135,8 +129,6 @@ class Pigzj extends FilterOutputStream {
 
         // TODO: Join code belo
         try {
-            // System.err.println("Pigzj join try flush");
-            // super.flush();
             System.err.println("Pigzj join try close");
             super.close();
             System.err.println("close() readTask.getUncompressedSize() == 0");
@@ -163,7 +155,7 @@ class Pigzj extends FilterOutputStream {
         DebugUtils. debug_m("setting closed = true.");
         closed = true;
 
-        throw new IOException("Task Complete.");
+        // throw new IOException("Task Complete.");
     }
 
     /**
@@ -177,6 +169,7 @@ class Pigzj extends FilterOutputStream {
         try {
             Pigzj pj = new Pigzj(o, config);
             pj.write(System.in);
+            pj.close();
         } catch(Exception e) {
             DebugUtils.debug_m("exiting with " + e);
         }
