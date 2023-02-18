@@ -26,8 +26,8 @@ class Pigzj extends FilterOutputStream {
     private BlockManager blockManager;
     private ReadTask readTask;
     // private Compressor compressor;
-    // private WriteTask writeTask;
-    // private Thread writeThread;
+    private WriteTask writeTask;
+    private Thread writeThread;
     // private ChecksumTask checksumTask;
     // private Thread checksumThread;
     private Block previousBlock = null;
@@ -45,25 +45,25 @@ class Pigzj extends FilterOutputStream {
             blockManager = new BlockManager(config);
             readTask = new ReadTask(blockManager);
             // compressor = new Compressor(config);
-            // writeTask = new WriteTask(blockManager, out, config);
-            // writeThread = new Thread(writeTask, "Pigzj write thread");
+            writeTask = new WriteTask(blockManager, out, config);
+            writeThread = new Thread(writeTask, "Pigzj write thread");
             // TODO: Does Checksum need config?
             // checksumTask = new ChecksumTask(new CRC32, config);
             // checksumThread = new Thread(checksumTask, "Pigzj checksum thread");
 
-            // writeThread.start();
+            writeThread.start();
             // checksumThread.start();
         } catch( RuntimeException e ) {
             // Handle this
         }
     }
 
-    public void write(Block block) throws IOException, InterruptedException {
-        byte[] data = block.getUncompressed();
-        int nBytes = block.getUncompressedSize();
-        out.write(data, 0, nBytes);
-        // blockManager.releaseBlockToPool(block);
-    }
+    // public void write(Block block) throws IOException, InterruptedException {
+    //     byte[] data = block.getUncompressed();
+    //     int nBytes = block.getUncompressedSize();
+    //     out.write(data, 0, nBytes);
+    //     // blockManager.releaseBlockToPool(block);
+    // }
 
     public synchronized void write(InputStream in) 
         throws IOException, RuntimeException {
@@ -78,18 +78,17 @@ class Pigzj extends FilterOutputStream {
             System.err.println("filter()");
             currentBlock = readTask.getNextBlock();
             while( currentBlock != null ) {
-                System.err.println("writing block " + currentBlock.blockNumber);
-                write(currentBlock);
+                System.err.println("submittting block " + currentBlock.blockNumber);
+
+                writeTask.submit(currentBlock);
                 
                 previousBlock = currentBlock;
 
                 // Test Latches
                 currentBlock.compressionDone();
                 currentBlock.checksumDone();
-                currentBlock.writeDone();
                 currentBlock.dictionaryDone();
                 
-                blockManager.recycleBlockToPool(currentBlock);
                 currentBlock = readTask.getNextBlock();
             }
             assert readTask.needsInput();
@@ -122,7 +121,8 @@ class Pigzj extends FilterOutputStream {
             System.err.println("close(): readTask.getUncompressedSize() == 0 ");
             try {
                 Block empty = blockManager.getBlockFromPool();
-                write(empty);
+                writeTask.submit(empty);
+                // write(empty);
             } catch( InterruptedException ignore ) {
             }
         }
@@ -130,6 +130,8 @@ class Pigzj extends FilterOutputStream {
         // TODO: Join code belo
         try {
             System.err.println("Pigzj join try close");
+            
+            writeThread.join();
             super.close();
             System.err.println("close() readTask.getUncompressedSize() == 0");
         } catch( Exception e ) {

@@ -1,5 +1,6 @@
 // General Imports
-import java.util.concurrent.ArrayBlockingQueue;
+// import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 // Exception Imports
@@ -13,7 +14,8 @@ public abstract class AbstractSerialExecutor implements Runnable {
     public AbstractSerialExecutor(ZipConfiguration config) {
         super();
         this.config = config;
-        tasks = new ArrayBlockingQueue<Block>(config.getBlockPoolSize());
+        // tasks = new ArrayBlockingQueue<Block>(config.getBlockPoolSize());
+        tasks = new LinkedBlockingQueue<Block>(config.getBlockPoolSize());
     }
 
     /**
@@ -45,10 +47,12 @@ public abstract class AbstractSerialExecutor implements Runnable {
     public void run() {
         while( ! finished ) {
             try {
+                System.err.println("AbstractSerialExecutor taking block");
                 Block block = tasks.take();
                 if( block.isLastBlock() ) {
                     finished = true;
                 }
+                System.err.println("AbstractSerialExecutor processing block " + block.blockNumber);
                 process(block);
             } catch (InterruptedException ignore) {
             } catch (Exception e) {
