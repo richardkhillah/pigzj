@@ -1,38 +1,25 @@
 // Imports
-import java.util.zip.GZIPOutputStream;
-
-// import clime.messadmin.utils.compress.zip.GZipConfiguration;
+// import java.util.zip.GZIPOutputStream;
 
 // Exception Imports
-import java.io.IOException;
-import java.lang.ArrayIndexOutOfBoundsException;
-import java.lang.Exception;
+// import java.io.IOException;
+// import java.lang.ArrayIndexOutOfBoundsException;
+// import java.lang.Exception;
 
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+// import java.io.FileOutputStream;
+// import java.io.OutputStream;
 
 
 class Pigzj {
-    private GZipConfiguration config;
+    private ZipConfiguration config;
     private int numProcesses;
 
+    // TODO: DO I NEED THIS??? I THINK NOT!!!
     public Pigzj() {
         numProcesses = Runtime.getRuntime().availableProcessors();
     }
 
-    public Pigzj(Args a) {
-        numProcesses = Runtime.getRuntime().availableProcessors();
-        int temp = a.getThreads();
-        if ((4 * numProcesses ) < temp) {
-            System.err.println("Max Processors Exceeded: Must have less than " + (4 * numProcesses) + " processors.");
-            System.err.println("Setting default processors to " + numProcesses);
-        } else if (0 < temp) {
-            numProcesses = temp;
-        }
-        System.err.println("numProcessors initialized to " + numProcesses);
-    }
-
-    public Pigzj(GZipConfiguration c) {
+    public Pigzj(ZipConfiguration c) {
         config = c;
     }
 
@@ -40,9 +27,8 @@ class Pigzj {
      * @param args
      * @throws IOException
      */
-    public static void main(String[] args) throws Exception, IOException {
-        
-        GZipConfiguration config = new GZipConfiguration(new Args(args));
+    public static void main(String[] args) throws Exception {
+        ZipConfiguration config = new ZipConfiguration(new Args(args));
 
         Pigzj pj = new Pigzj(config);
 

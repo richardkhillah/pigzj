@@ -1,6 +1,6 @@
 import java.util.zip.Deflater;
 
-public class GZipConfiguration {
+public class ZipConfiguration {
     private static final int MIN_BLOCK_SIZE = 32*1024;// 32k, size of LZ77 sliding window
 	private static final int DEFAULT_BLOCK_SIZE = 128*1024;// 128k
 
@@ -14,11 +14,11 @@ public class GZipConfiguration {
 	private int compressionMethod = Deflater.DEFLATED;
 	private CharSequence comment = null;
 
-    public GZipConfiguration() {
+    public ZipConfiguration() {
 		super();
 	}
 
-	public GZipConfiguration(Args a) {
+	public ZipConfiguration(Args a) {
 		super();
 		setMaxThreads(a);
 	}
