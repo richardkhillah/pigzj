@@ -1,7 +1,7 @@
 import java.lang.NumberFormatException;
 
 public class Args {
-    private int numThreads;
+    private int numThreads = -32;
 
     public Args(String[] args) throws Exception {
         if( args.length % 2 != 0) {
