@@ -32,6 +32,8 @@ class Pigzj {
 
         Pigzj pj = new Pigzj(config);
 
+        BlockManager blockManager = new BlockManager(config);
+
         // System.err.println(config.toString());
 
 
