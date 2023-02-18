@@ -1,10 +1,3 @@
-// package clime.messadmin.utils.compress.zip;
-
-import static java.lang.Math.abs;
-import static java.lang.Math.floor;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 import java.util.zip.Deflater;
 
 public class GZipConfiguration {
