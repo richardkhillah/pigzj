@@ -38,6 +38,17 @@ public class Block implements Comparable<Block> {
         recycleSync = new CountDownLatch(4); // compression, checksum, write, dictionary all need to be done
     }
 
+    /**
+     * Call from BlockManager
+     * Allocate blocks on first use in BlockManager.
+     * @param config ZipConfiguration object containing blocksize to malloc.
+     */
+    public void initialize(ZipConfiguration config) {
+        if( uncompressed == null ){
+            uncompressed = new byte[config.getBlockSize()];
+        }
+    }
+
     // Call from WritePIGZipTask
     public void waitUntilCanWrite() throws InterruptedException {
         writeSync.await();
