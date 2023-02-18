@@ -16,4 +16,4 @@ run:
 	$(JAVA) $(MAIN) $(P) $(P_NUM)
 
 clean:
-	rm ${COMPS}
+	rm -f ${COMPS} test.gz

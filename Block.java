@@ -139,6 +139,9 @@ public class Block implements Comparable<Block> {
                 totalRead += lastRead;
             }
         }
+        // if( lastRead == -1 ){
+        //     throw new IOException("-1");
+        // }
         return totalRead;
     }
 

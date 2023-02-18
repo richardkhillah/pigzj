@@ -2,3 +2,5 @@
 *.class
 testinput.txt
 test
+test.gz
+DebugUtils.java

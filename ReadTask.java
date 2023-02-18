@@ -43,32 +43,40 @@ public class ReadTask {
      * @throws InterruptedException
      */
     public Block getNextBlock() throws IOException, InterruptedException {
+        System.err.println("getNextBlock");
         if ( currentBlock == null || ! currentBlock.isComplete() ) {
+            System.err.println("getNextBlock first if");
             currentBlock = readCurrentOrNewBlock();
         }
 
-        // TODO: WHERE IS finish set??
+        // Set in Pigzj.close() via readTask.finish();
         if ( finish ) {
+            System.err.println("getNextBlock if finish");
             Block nextBlock = readCurrentOrNewBlock();
             if ( (nextBlock == null || nextBlock == currentBlock) && currentBlock != null ) {
-                currentBlock.isLastBlock();
+                System.err.println("getNextBlock if finish if");
+                currentBlock.setIsLastBlock();
             }
             Block block = currentBlock;
             currentBlock = (nextBlock != currentBlock) ? nextBlock : null;
+            System.err.println("(nextBlock != currentBlock) ? nextBlock : null =" + (nextBlock != currentBlock));
             return block;
         }
 
         if( currentBlock == null || ! currentBlock.isComplete() ) {
+            System.err.println("getNextBlock third if");
             return null;
         }
 
         Block nextBlock = readCurrentOrNewBlock();
         if( nextBlock != null ){
+            System.err.println("getNextBlock fourth if");
             Block block = currentBlock;
             currentBlock = nextBlock;
             return block;
         }
 
+        System.err.println("getNextBlock return null at end");
         return null;
     }
 
@@ -86,6 +94,7 @@ public class ReadTask {
      */
     private Block readCurrentOrNewBlock() throws IOException, InterruptedException {
         if( needsInput() ){
+            System.err.println("readCurrentOfNewBlock()");
             return (currentBlock != null && ! currentBlock.isComplete() ) ? currentBlock : null;
         }
 
@@ -101,7 +110,7 @@ public class ReadTask {
             if( bytesRead > 0) {
                 uncompressedSize += bytesRead;
             }
-            if( bytesRead == 0 || ! block.isComplete() ){ // last block
+            if( bytesRead == -1 || bytesRead == 0 || ! block.isComplete() ){ // last block
                 inputStream = null;
             }
         }
@@ -115,7 +124,7 @@ public class ReadTask {
         return block;
     }
 
-    private void setInput(InputStream input) throws IllegalStateException {
+    public void setInput(InputStream input) throws IllegalStateException {
         if( ! needsInput() ) {
             throw new IllegalStateException("An open input stream already exists.");
         }
@@ -142,5 +151,9 @@ public class ReadTask {
 
         // TODO: do I want to deal with this now or later?
         // lastException = null;
+    }
+
+    public long getUncompressedSize() {
+        return uncompressedSize;
     }
 }

@@ -35,6 +35,7 @@ public class BlockManager {
      * @throws InterruptedException
      */
     public Block getBlockFromPool() throws InterruptedException {
+        System.err.println("getBlockFromPool");
         Block block = blockPool.takeFirst();
         block.initialize(config); // Allocates block memory not already alloc'd
         block.blockNumber = blockNumber.getAndIncrement();
@@ -59,6 +60,10 @@ public class BlockManager {
      * Called by BlockManager and ReadTask when a read issue occurs
      * and in WritePIGZipTask after the compressed data has been
      * written to the outputStream.
+     * 
+     * Warning: This should be used with care outside BlockManager. Releasing
+     * a block before countdownLatches are triggered will cause
+     * deflation issues.
      * 
      * @param block Block object to be returned to the block pool
      * @throws InterruptedException
