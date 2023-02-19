@@ -35,7 +35,6 @@ public class BlockManager {
      * @throws InterruptedException
      */
     public Block getBlockFromPool() throws InterruptedException {
-        System.err.println("getBlockFromPool");
         Block block = blockPool.takeFirst();
         block.initialize(config); // Allocates block memory not already alloc'd
         block.blockNumber = blockNumber.getAndIncrement();

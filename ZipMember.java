@@ -138,11 +138,23 @@ public class ZipMember {
         return trailer.array();
     }
 
+    /**
+     * Helper to convert a signed int into unsigned byte representation
+     * @param i      // into to convert
+     * @param buf    // byte buffer to write converted byte into
+     * @param offset
+     */
     private static void writeInt(int i, byte[] buf, int offset) {
       writeShort(i & 0xffff, buf, offset);            // write lower
       writeShort((i >> 16) & 0xffff, buf, offset + 2);// write upper
     }
 
+    /**
+     * 
+     * @param s
+     * @param buf
+     * @param offset
+     */
     private static void writeShort(int s, byte[] buf, int offset) {
       buf[offset] = (byte)(s & 0xff);       // write lower byte
       buf[offset+1] = (byte)(s >> 8 & 0xff);  // write upper byte

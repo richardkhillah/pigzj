@@ -43,40 +43,32 @@ public class ReadTask {
      * @throws InterruptedException
      */
     public Block getNextBlock() throws IOException, InterruptedException {
-        System.err.println("getNextBlock");
         if ( currentBlock == null || ! currentBlock.isComplete() ) {
-            System.err.println("getNextBlock first if");
             currentBlock = readCurrentOrNewBlock();
         }
 
         // Set in Pigzj.close() via readTask.finish();
         if ( finish ) {
-            System.err.println("getNextBlock if finish");
             Block nextBlock = readCurrentOrNewBlock();
             if ( (nextBlock == null || nextBlock == currentBlock) && currentBlock != null ) {
-                System.err.println("getNextBlock if finish if");
                 currentBlock.setIsLastBlock();
             }
             Block block = currentBlock;
             currentBlock = (nextBlock != currentBlock) ? nextBlock : null;
-            System.err.println("(nextBlock != currentBlock) ? nextBlock : null =" + (nextBlock != currentBlock));
             return block;
         }
 
         if( currentBlock == null || ! currentBlock.isComplete() ) {
-            System.err.println("getNextBlock third if");
             return null;
         }
 
         Block nextBlock = readCurrentOrNewBlock();
         if( nextBlock != null ){
-            System.err.println("getNextBlock fourth if");
             Block block = currentBlock;
             currentBlock = nextBlock;
             return block;
         }
 
-        System.err.println("getNextBlock return null at end");
         return null;
     }
 
@@ -94,7 +86,6 @@ public class ReadTask {
      */
     private Block readCurrentOrNewBlock() throws IOException, InterruptedException {
         if( needsInput() ){
-            System.err.println("readCurrentOfNewBlock()");
             return (currentBlock != null && ! currentBlock.isComplete() ) ? currentBlock : null;
         }
 

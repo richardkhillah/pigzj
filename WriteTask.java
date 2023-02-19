@@ -74,7 +74,6 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
      * @throws InterruptedException
      */
     public void write(Block block) throws IOException, InterruptedException {
-        System.err.println("Writing block " + block.blockNumber);
         byte[] data = block.getUncompressed();
         int nBytes = block.getUncompressedSize();
         out.write(data, 0, nBytes);
@@ -97,11 +96,8 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
             // and uncompressedSize to be set before writing trailer.
             trailerSync.await();
             
-            System.err.println("WriteTask run making trailer");
             byte[] trailer = ZipMember.makeTrailer(checksum, uncompressedSize);
-            System.err.println("WriteTask run writing trailer");
             out.write(trailer);
-            System.err.println("WriteTask run trailer write done.");
 
             out.flush();
         } catch (InterruptedException ignore){
@@ -121,13 +117,9 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
      */
     @Override
     protected void process(Block block) throws InterruptedException, IOException {
-        System.err.println("Waiting unil block " + block.blockNumber + " can write");
         block.waitUntilCanWrite(); // block needs to be fully compressed.
-        System.err.println("block " + block.blockNumber + " can write");
         
-        System.err.println("WriteTask process writeCompressedTo block " + block.blockNumber + " " + block.getUncompressed().length + " bytes");
         block.writeCompressedTo(out);
-        System.err.println("WriteTask process writeCompressedTo block " + block.blockNumber + " done");
         
         block.writeDone();
         blockManager.recycleBlockToPool(block);
