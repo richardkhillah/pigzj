@@ -1,5 +1,11 @@
+/**
+ * AbstractSerialExecutor. Based on Cedrick Lime's MessAdmins
+ * AbstractSerialExecutor.
+ * 
+ * Here we implement a BlockingQue as a LinkedBlockingQue
+ */
+
 // General Imports
-// import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -14,7 +20,6 @@ public abstract class AbstractSerialExecutor implements Runnable {
     public AbstractSerialExecutor(ZipConfiguration config) {
         super();
         this.config = config;
-        // tasks = new ArrayBlockingQueue<Block>(config.getBlockPoolSize());
         tasks = new LinkedBlockingQueue<Block>(config.getBlockPoolSize());
     }
 

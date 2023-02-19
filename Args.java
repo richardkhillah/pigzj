@@ -1,3 +1,9 @@
+/**
+ * Args.java
+ * 
+ * Parse the Stdin args passed to main from the cli, searching 
+ * for the -p option.
+ */
 import java.lang.NumberFormatException;
 
 public class Args {

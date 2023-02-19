@@ -5,11 +5,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 // Exception Imports
 
-
-
 public class BlockManager {
     private final BlockingDeque<Block> blockPool;
-    // TODO: Rename to seq num.
     private final AtomicInteger blockNumber = new AtomicInteger(0);
     private final ZipConfiguration config;
 

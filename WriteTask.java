@@ -13,10 +13,7 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
     private final OutputStream out;
     private volatile int checksum;
     private volatile int uncompressedSize = 0;
-    //trailerSync: checksum & uncompressedSize
-    private final CountDownLatch trailerSync = new CountDownLatch(2);
-    //TODO: handle this.
-    // private IOException lasException = null;
+    private final CountDownLatch trailerSync = new CountDownLatch(2); //trailerSync: checksum & uncompressedSize
 
     public WriteTask(BlockManager blockManager, OutputStream out, 
         ZipConfiguration config) throws IOException
@@ -28,10 +25,6 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
         long mod_time = Instant.now().getEpochSecond();
         byte[] header = ZipMember.makeHeader(config.getCompressionLevel(), mod_time);
         out.write(header);
-        // TODO: Write the WriteHeader method somewhere
-        // int headerSize = ZipFileStreamUtil.writeHeader(out, 
-        //                                 config.getCompressionLevel());
-
     }
 
     /**
@@ -98,13 +91,10 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
             
             byte[] trailer = ZipMember.makeTrailer(checksum, uncompressedSize);
             out.write(trailer);
-
             out.flush();
         } catch (InterruptedException ignore){
         } catch (IOException e) {
             // TODO: handle exception
-            // lastException = e;
-            // throw new RuntimeException(e);
         }
     }
 
@@ -118,18 +108,10 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
     @Override
     protected void process(Block block) throws InterruptedException, IOException {
         block.waitUntilCanWrite(); // block needs to be fully compressed.
-        
         block.writeCompressedTo(out);
-        
         block.writeDone();
+
         blockManager.recycleBlockToPool(block);
     }
-
-
-    
-    // TODO: Figure this out.
-    // public IOException getLasException() {
-    //     return lastException;
-    // }
 }
 

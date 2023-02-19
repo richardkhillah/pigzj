@@ -1,14 +1,12 @@
 // General Imports
-import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 // Exception Imports
 
-// public class ChecksumTask extends AbstractSerialExecutor implements Runnable {
 public class ChecksumTask extends AbstractSerialExecutor {
-    protected CRC32 checksum;
+    protected Checksum checksum;
 
-    ChecksumTask(CRC32 checksum, ZipConfiguration config) {
+    ChecksumTask(Checksum checksum, ZipConfiguration config) {
         super(config); // AbstractSerialExecutor
         this.checksum = checksum;
         checksum.reset();
@@ -22,7 +20,7 @@ public class ChecksumTask extends AbstractSerialExecutor {
      * @param block The block to check.
      */
     protected void process(Block block) {
-        checksum.update(block.getUncompressed());
+        checksum.update(block.getUncompressed(), 0, block.getUncompressedSize());
         block.checksumDone();
     }
 

@@ -1,13 +1,14 @@
+/**
+ * Inspiration and Structure from MessAdmin. This is a stripped
+ * version the clime.messadmin.utils.compress.impl.ReadTask.java
+ */
+
 // Core Imports
 import java.io.IOException;
 import java.io.InputStream;
 
 // Exception Imports
 
-/**
- * Inspiration and Structure from MessAdmin. This is a stripped
- * version the clime.messadmin.utils.compress.impl.ReadTask.java
- */
 public class ReadTask {
     private final BlockManager blockManager;
     private InputStream inputStream = null;
@@ -15,14 +16,10 @@ public class ReadTask {
     private long uncompressedSize = 0;
     private boolean finish = false;
 
-    // TODO: Should I keep this or should it go?
-    // private IOException lastException = null;
 
     public ReadTask(BlockManager blockManager) {
         this.blockManager = blockManager;
     }
-
-    // TODO: IOException getLastException()
 
     /**
      * Called locally when attempting to read a block. We can only
@@ -89,6 +86,7 @@ public class ReadTask {
             return (currentBlock != null && ! currentBlock.isComplete() ) ? currentBlock : null;
         }
 
+        // Get a block to work with
         Block block;
         if( currentBlock != null && !currentBlock.isComplete() ){
             block = currentBlock;
@@ -96,6 +94,7 @@ public class ReadTask {
             block = blockManager.getBlockFromPool();
         }
 
+        // Fill the block if we have an input to read from
         if( ! needsInput() ){
             int bytesRead = block.read(inputStream);
             if( bytesRead > 0) {
@@ -106,8 +105,8 @@ public class ReadTask {
             }
         }
 
-        // Something went wrong with this block. Return block to blockpool.
         if( block.getUncompressedSize() <= 0 ){
+            // Something went wrong with this block. Return block to blockpool.
             blockManager.releaseBlockToPool(block);
             return (currentBlock != null && ! currentBlock.isComplete()) ? currentBlock : null;
         }
@@ -122,7 +121,6 @@ public class ReadTask {
         inputStream = input;
     }
 
-    // TODO: Confirm Pigzj should call this in close, not write.
     /**
      * Called by Pigzj.___.
      * No more input is read, so signal to close the writeStream.
@@ -139,9 +137,6 @@ public class ReadTask {
         inputStream = null;
         currentBlock = null;
         uncompressedSize = 0;
-
-        // TODO: do I want to deal with this now or later?
-        // lastException = null;
     }
 
     public long getUncompressedSize() {

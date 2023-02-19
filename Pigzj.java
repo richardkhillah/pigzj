@@ -1,10 +1,7 @@
 // General Imports
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilterOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.WritableByteChannel;
 import java.util.zip.CRC32;
 
 // Exception Imports
@@ -23,9 +20,6 @@ class Pigzj extends FilterOutputStream {
     private Block currentBlock = null;
     private boolean closed = false; // If true, stream closed
     
-    // TODO: Deal with this later.
-    // private Exception lastException = null;
-
     public Pigzj(InputStream in, OutputStream out, Args args)
                 throws IOException {
         super(out);
@@ -100,7 +94,6 @@ class Pigzj extends FilterOutputStream {
             writeThread.join();
             super.close();
         } catch( Exception e ) {
-        // } catch( InterruptedException e ) {
             //TODO: Deal with this
         } finally {
             // shutdown compressor
@@ -109,20 +102,6 @@ class Pigzj extends FilterOutputStream {
                 compressor = null;
             }
         }
-
-        // This is a bit of overkill at this stage 
-        // since we're not reusing this program.
-        blockManager = null;
-        readTask = null;
-        writeTask = null;
-        writeThread = null;
-        checksumTask = null;
-        checksumThread = null;
-        previousBlock = null;
-        currentBlock = null;
-        closed = true;
-
-        // throw new IOException("Task Complete.");
     }
 
     /**

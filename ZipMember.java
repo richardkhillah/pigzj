@@ -62,7 +62,6 @@ import java.util.zip.Deflater;
          +---+---+---+---+---+---+---+---+
  */
 public class ZipMember {
-    public final static int GZIP_MAGIC = 0x8b1f; // Header magic number
     public final static int TRAILER_SIZE = 8; // 8 byte
 
     // Header flags
@@ -73,17 +72,6 @@ public class ZipMember {
    //  private final static int MTIME = 0;
    //  private final static byte XFL = 0;
     private final static byte OS = (byte)0xff;
-
-    // private final static byte[] default_header = {
-    //                 // ID's identify the file as being in gzip format
-    //     ID1,        // fixed value 31 (0x1f, \037)
-    //     ID2,        // fixed value 139 (0x8b, \213)
-    //     CM,         // Compression Method
-    //     FLG,        // Flags
-    //     0, 0, 0, 0, // 4-byte Modification Time
-    //     XFL,        // Extra Flags
-    //     OS          // Operating System
-    // } // 10-byte buffer
 
     private ZipMember(){}
 
@@ -135,6 +123,7 @@ public class ZipMember {
         byte[] uc = new byte[4];
         writeInt(uncompressedBytes, uc, 0);
         trailer.put(uc);
+
         return trailer.array();
     }
 

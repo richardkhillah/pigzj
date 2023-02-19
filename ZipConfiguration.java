@@ -62,19 +62,19 @@ public class ZipConfiguration {
         int proposedThreadCount = a.getThreads();
         
         if (proposedThreadCount < 0 || (4 * cpuCores ) < proposedThreadCount) {
-            System.err.println("Invalid number of threads: Must use between " 
-                + cpuCores + " and " + (4 * cpuCores) + " threads...");
+			if( proposedThreadCount != -32 ) {
+				System.err.println("Warning: " + proposedThreadCount + 
+				" threads not supported. Must use between " + 
+				cpuCores + " and " + (4 * cpuCores) + " threads... setting max threads to " + cpuCores);
+			}
             maxThreads = cpuCores;
         } else {
             maxThreads = proposedThreadCount;
         } 
-        System.err.println("maxThreads initialized to " + maxThreads);
 	}
 
 	/**
-	 * @param maxThreads  set to {@code <= 0} to compute optimal number of CPU cores using system load average,
-	 *                       capped to {@code abs(maxThreads)}
-	 *                       ({@code 0} == uncapped)
+	 * @param maxThreads number of threads to use. More than 0 and not more than 4*availableProcessors.
 	 */
 	public void setMaxThreads(int maxThreads) {
 		this.maxThreads = maxThreads;
