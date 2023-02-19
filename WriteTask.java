@@ -1,5 +1,6 @@
 // General Imports
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.concurrent.CountDownLatch;
 
 // Exception Imports
@@ -12,7 +13,7 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
     private final OutputStream out;
     private volatile int checksum;
     private volatile int uncompressedSize = 0;
-    //trailerSync: checksumk & uncompressedSize
+    //trailerSync: checksum & uncompressedSize
     private final CountDownLatch trailerSync = new CountDownLatch(2);
     //TODO: handle this.
     // private IOException lasException = null;
@@ -24,6 +25,9 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
         this.blockManager = blockManager;
         this.out = out;
         
+        long mod_time = Instant.now().getEpochSecond();
+        byte[] header = ZipMember.makeHeader(config.getCompressionLevel(), mod_time);
+        out.write(header);
         // TODO: Write the WriteHeader method somewhere
         // int headerSize = ZipFileStreamUtil.writeHeader(out, 
         //                                 config.getCompressionLevel());
@@ -84,24 +88,20 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
      */
     @Override
     public void run() {
-        // super.run(), for all intent purposes is this threads "main loop".
+        // Run this threads "main loop".
         super.run();
 
+        // Before finishing things up.
         try {
             // the last block was written, now wait for checksum before 
             // and uncompressedSize to be set before writing trailer.
-
-            // 2x trailerSync to mimic CRC + setUncompressedSize
-            trailerSync.countDown();
-            trailerSync.countDown();
             trailerSync.await();
-
-
-            //TODO Implement these things.
-            // byte[] trailer = new byte[GZipFileStreamUtil.TRAILER_SIZE];
-            // ZipFileStreamUtil.writeTrailer(trailer, 0, checksum, uncompressedSize);
-            // out.write(trailer);
-
+            
+            System.err.println("WriteTask run making trailer");
+            byte[] trailer = ZipMember.makeTrailer(checksum, uncompressedSize);
+            System.err.println("WriteTask run writing trailer");
+            out.write(trailer);
+            System.err.println("WriteTask run trailer write done.");
 
             out.flush();
         } catch (InterruptedException ignore){
@@ -121,10 +121,13 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
      */
     @Override
     protected void process(Block block) throws InterruptedException, IOException {
+        System.err.println("Waiting unil block " + block.blockNumber + " can write");
         block.waitUntilCanWrite(); // block needs to be fully compressed.
-        // block.writeCompressedTo(out);
+        System.err.println("block " + block.blockNumber + " can write");
         
-        write(block);
+        System.err.println("WriteTask process writeCompressedTo block " + block.blockNumber + " " + block.getUncompressed().length + " bytes");
+        block.writeCompressedTo(out);
+        System.err.println("WriteTask process writeCompressedTo block " + block.blockNumber + " done");
         
         block.writeDone();
         blockManager.recycleBlockToPool(block);

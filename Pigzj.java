@@ -4,8 +4,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.WritableByteChannel;
 
-import javax.imageio.IIOException;
-import javax.print.attribute.standard.Compression;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
+import java.util.zip.CRC32;
+
 
 // Imports
 // import java.util.zip.GZIPOutputStream;
@@ -28,8 +31,8 @@ class Pigzj extends FilterOutputStream {
     // private Compressor compressor;
     private WriteTask writeTask;
     private Thread writeThread;
-    // private ChecksumTask checksumTask;
-    // private Thread checksumThread;
+    private ChecksumTask checksumTask;
+    private Thread checksumThread;
     private Block previousBlock = null;
     private Block currentBlock = null;
     private boolean closed = false; // If true, stream closed
@@ -37,38 +40,30 @@ class Pigzj extends FilterOutputStream {
     // TODO: Deal with this later.
     // private Exception lastException = null;
 
-    public Pigzj(OutputStream out, ZipConfiguration config)
+    // public Pigzj(OutputStream out, ZipConfiguration config)
+    public Pigzj(InputStream in, OutputStream out, Args args)
                 throws IOException {
         super(out);
-        this.config = config;
+
+        config = new ZipConfiguration(args);
         try {
             blockManager = new BlockManager(config);
             readTask = new ReadTask(blockManager);
+            readTask.setInput(in);
+
             // compressor = new Compressor(config);
+
             writeTask = new WriteTask(blockManager, out, config);
             writeThread = new Thread(writeTask, "Pigzj write thread");
-            // TODO: Does Checksum need config?
-            // checksumTask = new ChecksumTask(new CRC32, config);
-            // checksumThread = new Thread(checksumTask, "Pigzj checksum thread");
+            
+            checksumTask = new ChecksumTask(new CRC32(), config);
+            checksumThread = new Thread(checksumTask, "Pigzj checksum thread");
 
             writeThread.start();
-            // checksumThread.start();
+            checksumThread.start();
         } catch( RuntimeException e ) {
             // Handle this
         }
-    }
-
-    // public void write(Block block) throws IOException, InterruptedException {
-    //     byte[] data = block.getUncompressed();
-    //     int nBytes = block.getUncompressedSize();
-    //     out.write(data, 0, nBytes);
-    //     // blockManager.releaseBlockToPool(block);
-    // }
-
-    public synchronized void write(InputStream in) 
-        throws IOException, RuntimeException {
-        readTask.setInput(in);
-        filter();
     }
 
     public void filter() 
@@ -78,16 +73,15 @@ class Pigzj extends FilterOutputStream {
             System.err.println("filter()");
             currentBlock = readTask.getNextBlock();
             while( currentBlock != null ) {
-                System.err.println("submittting block " + currentBlock.blockNumber);
+                System.err.println("filter submittting block " + currentBlock.blockNumber);
+
+                CompressTask ctask = new CompressTask(currentBlock, previousBlock, config);
+                ctask.run();
 
                 writeTask.submit(currentBlock);
+                checksumTask.submit(currentBlock);
                 
                 previousBlock = currentBlock;
-
-                // Test Latches
-                currentBlock.compressionDone();
-                currentBlock.checksumDone();
-                currentBlock.dictionaryDone();
                 
                 currentBlock = readTask.getNextBlock();
             }
@@ -99,12 +93,7 @@ class Pigzj extends FilterOutputStream {
         } catch( RuntimeException e ){
             throw new RuntimeException(e);
         }
-
-        // close();
     }
-
-    // See hack inside close()
-    private int i = 0;
     
     @Override
     public void close() throws IOException, RuntimeException {
@@ -130,8 +119,17 @@ class Pigzj extends FilterOutputStream {
         // TODO: Join code belo
         try {
             System.err.println("Pigzj join try close");
-            
+            checksumThread.join();
+
+
+            // System.err.println("Pigzj close setting CRC to " + (int)checksumTask.getChecksumValue() + "(actual value: " + checksumTask.getChecksumValue() + ")");
+            writeTask.setCRC((int)checksumTask.getChecksumValue());
+
+            System.err.println("Pigzj close setting uncompressedSize to " + (int)(readTask.getUncompressedSize() & 0xffffffffL));
+            writeTask.setUncompressedSize(readTask.getUncompressedSize());
+
             writeThread.join();
+            
             super.close();
             System.err.println("close() readTask.getUncompressedSize() == 0");
         } catch( Exception e ) {
@@ -146,10 +144,10 @@ class Pigzj extends FilterOutputStream {
         blockManager = null;
         DebugUtils.debug_m("setting readTask = null.");
         readTask = null;
-        // writeTask = null;
-        // writeThread = null;
-        // checksumTask = null;
-        // checksumThread = null;
+        writeTask = null;
+        writeThread = null;
+        checksumTask = null;
+        checksumThread = null;
         DebugUtils.debug_m("setting previousBlock = null.");
         previousBlock = null;
         DebugUtils.debug_m("setting currentBlock = null.");
@@ -165,21 +163,14 @@ class Pigzj extends FilterOutputStream {
      * @throws IOException
      */
     public static void main(String[] args) throws Exception {
-        ZipConfiguration config = new ZipConfiguration(new Args(args));
-        OutputStream o = System.out;
-
         try {
-            Pigzj pj = new Pigzj(o, config);
-            pj.write(System.in);
+            Pigzj pj = new Pigzj(System.in, System.out, new Args(args));
+            pj.filter();
             pj.close();
         } catch(Exception e) {
-            DebugUtils.debug_m("exiting with " + e);
+            throw new Exception(e);
+            // DebugUtils.debug_m("exiting with " + e);
         }
-
-
-        // System.err.println(config.toString());
-
-
 
 
 

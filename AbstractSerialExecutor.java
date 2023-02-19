@@ -50,6 +50,7 @@ public abstract class AbstractSerialExecutor implements Runnable {
                 System.err.println("AbstractSerialExecutor taking block");
                 Block block = tasks.take();
                 if( block.isLastBlock() ) {
+                    System.err.println("AbstractSerialExecutor setting finished true");
                     finished = true;
                 }
                 System.err.println("AbstractSerialExecutor processing block " + block.blockNumber);

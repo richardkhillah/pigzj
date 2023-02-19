@@ -10,8 +10,11 @@ public class ZipConfiguration {
     private int maxThreads = -32;
 	private int blockSize = DEFAULT_BLOCK_SIZE;
 
+	// TODO: Ensure this is set correctly. Try Deflater.BEST_SPEED
 	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
 	private int compressionMethod = Deflater.DEFLATED;
+	
+
 	private CharSequence comment = null;
 
     public ZipConfiguration() {
