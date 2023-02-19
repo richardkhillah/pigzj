@@ -2,6 +2,7 @@
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Random;
 
 // Exceptions
 import java.lang.Exception;
@@ -14,13 +15,23 @@ class TestFile {
         if (!dstDir.exists()) {
             dstDir.mkdirs();
         }
+
+        Random rand = new Random();
+
         File twoMB = new File(dstDir, "2MiB_of_Zeros");
         OutputStream out = new FileOutputStream(twoMB);
 
         byte[] oneMB = new byte[1024*1024];
-        for(int i = 0; i < 2; i++) {
-            out.write(oneMB);
-        }
+        rand.nextBytes(oneMB);
+        out.write(oneMB);
+        out.close();
+        
+        File non_2s_comp = new File(dstDir, "2MiB_of_Zeros");
+        out = new FileOutputStream(non_2s_comp);
+
+        byte[] non_2s = new byte[3*1027*1025];
+        rand.nextBytes(non_2s);
+        out.write(non_2s);
         out.close();
     }
 
