@@ -92,7 +92,7 @@ class Pigzj extends FilterOutputStream {
             writeTask.setCRC((int)checksumTask.getChecksumValue());
             writeTask.setUncompressedSize(readTask.getUncompressedSize());
             writeThread.join();
-            super.close();
+            // super.close();
         } catch( Exception e ) {
             //TODO: Deal with this
         } finally {

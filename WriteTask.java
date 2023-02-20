@@ -24,7 +24,12 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
         
         long mod_time = Instant.now().getEpochSecond();
         byte[] header = ZipMember.makeHeader(config.getCompressionLevel(), mod_time);
-        out.write(header);
+        try {
+            out.write(header);   
+        } catch( IOException e ) {
+            throw new IOException(e);
+            // System.exit(-1);
+        }
     }
 
     /**
