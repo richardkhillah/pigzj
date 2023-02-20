@@ -211,4 +211,9 @@ public class Block implements Comparable<Block> {
         }
     }
 
+    public byte[] getCompressed(){
+        assert compressionDone;
+        return compressed.toByteArray();
+    }
+
 }

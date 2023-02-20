@@ -60,11 +60,7 @@ class Pigzj extends FilterOutputStream {
                 currentBlock = readTask.getNextBlock();
             }
             assert readTask.needsInput();
-        } catch( InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch( IOException e ){
-            throw new RuntimeException(e);
-        } catch( RuntimeException e ){
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

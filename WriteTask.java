@@ -1,16 +1,20 @@
 // General Imports
 import java.io.OutputStream;
 import java.time.Instant;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 // Exception Imports
 import java.io.IOException;
 
-// User Defined Imports
-
-class WriteTask extends AbstractSerialExecutor implements Runnable {
-    private final BlockManager blockManager;
+class WriteTask implements Runnable {
+    protected ZipConfiguration config;
     private final OutputStream out;
+    private final BlockManager blockManager;
+    private final BlockingQueue<Block> tasks;
+    private volatile boolean finished = false;
+
     private volatile int checksum;
     private volatile int uncompressedSize = 0;
     private final CountDownLatch trailerSync = new CountDownLatch(2); //trailerSync: checksum & uncompressedSize
@@ -18,19 +22,32 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
     public WriteTask(BlockManager blockManager, OutputStream out, 
         ZipConfiguration config) throws IOException
     {
-        super(config); //AbstractSerialExecutor
-        this.blockManager = blockManager;
+        super(); // Runnable
+        this.config = config;
         this.out = out;
+        this.blockManager = blockManager;
+        tasks = new LinkedBlockingQueue<Block>(config.getBlockPoolSize());
         
+        // Write the compression header
         long mod_time = Instant.now().getEpochSecond();
         byte[] header = ZipMember.makeHeader(config.getCompressionLevel(), mod_time);
         try {
             out.write(header);   
         } catch( IOException e ) {
             throw new IOException(e);
-            // System.exit(-1);
         }
     }
+
+    /**
+     * Add a task to the queue
+     */
+    public void submit(Block block) {
+        try {
+            tasks.put(block);
+        } catch (InterruptedException ignore) {
+        }
+    }
+
 
     /**
      * Called from Pigzj when joining thread. Checksum is a final
@@ -85,10 +102,27 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
      */
     @Override
     public void run() {
-        // Run this threads "main loop".
-        super.run();
+        // Run main writing loop
+        while( ! finished ) {
+            try {
+                // blocking take
+                Block block = tasks.take();
+                if( block.isLastBlock() ) {
+                    finished = true;
+                }
+                block.waitUntilCanWrite(); // block needs to be fully compressed.
+                out.write(block.getCompressed());
+                block.writeDone();
+        
+                blockManager.recycleBlockToPool(block);
+            } catch (InterruptedException ignore) {
+            } catch (Exception e) {
+                throw (e instanceof RuntimeException) ? (RuntimeException)e : new RuntimeException(e);
+            }
 
-        // Before finishing things up.
+        }
+
+        // before finishing things up.
         try {
             // the last block was written, now wait for checksum before 
             // and uncompressedSize to be set before writing trailer.
@@ -101,22 +135,6 @@ class WriteTask extends AbstractSerialExecutor implements Runnable {
         } catch (IOException e) {
             // TODO: handle exception
         }
-    }
-
-    /**
-     * The task run in the super.run() main loop. Write each block
-     * to the output stream then release the block used back to the 
-     * block manager to be recycled.
-     * 
-     * @param block The block containing compressed data to be written.
-     */
-    @Override
-    protected void process(Block block) throws InterruptedException, IOException {
-        block.waitUntilCanWrite(); // block needs to be fully compressed.
-        block.writeCompressedTo(out);
-        block.writeDone();
-
-        blockManager.recycleBlockToPool(block);
     }
 }
 

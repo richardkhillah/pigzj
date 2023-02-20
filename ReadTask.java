@@ -10,6 +10,7 @@ import java.io.InputStream;
 // Exception Imports
 
 public class ReadTask {
+
     private final BlockManager blockManager;
     private InputStream inputStream = null;
     private Block currentBlock = null;

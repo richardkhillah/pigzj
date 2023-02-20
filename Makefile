@@ -18,7 +18,7 @@ run:
 	$(JAVA) $(MAIN) $(P) $(P_NUM)
 
 clean:
-	rm -f ${COMPS} *.gz *.jar
+	rm -f ${COMPS} *.gz *.jar pigzj pigzj.build_artifacts.txt
 
 dist: clean
 	$(JAR) hw3.jar ${SRCS} README.txt
