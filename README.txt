@@ -197,9 +197,9 @@ behavior: All the work that needs to happen needs to happen. So regardless
 the number of threads used, a file of some fixed size, being read through
 standard input, compressed, and written to standard output, will always
 require the same amount of processing time to compute, since it is the 
-same amout of work. After all, compression a computation without shortcuts.
+same amount of work.
 
-Another noticable and notable differnce between single-/multi- threaded
+Another noticable and notable difference between single-threaded and multi-threaded
 implementations is the amount of time the program spends in the kernal
 (sys time). Again, we would exepct this, especially in synchronized parallel 
 programs. This is mostly due to trapping when threads wait for locks, when
@@ -215,15 +215,14 @@ single-threaded operations, like IO is imporant.
 
 This balance is critical. If the thread-to-processor ratio is too high (i.e.,
 more than 4 threads per processor, say), then we run into software scheduling
-issues. The Software scheduler runs heuristics to deterime the optimal number
+issues. The Software scheduler runs heuristics to determine the optimal number
 of threads to use per core. If a user defines more threads than the scheduler
-can efficiently schedule, the scheduler may do one of the following to use
-the threads a user defined:
+can efficiently schedule, the scheduler may do one of the following:
 
 A) Diminish thread time-slices as the number of threads per core increases.
 This has the effect of "cramming" more threads on a single core (for the same
 OS provided timeslice). Here are the side effects:
-    1) Less dedicated per-thread core time and 
+    1) Less dedicated per-thread core time
     2) Increase in context-switching time between threads
     
 B) Keep the thread-to-core ratio the same and spread threads out over
@@ -239,16 +238,16 @@ Consideration of Stack Traces
 memory access calls than gzip.
 * Pigzj has almost no read calls, relative to all other binaries (gzip included)
 * the native-image pigzj of Pigzj has the most interesting stack trace. 
-It has a large number of execve calls which across every trace which 
-indicates graalvm might be trowing compress tasks into a process and 
-letting the OS schedule tasks. 
+It has a large number of execve calls across every trace which 
+indicates graalvm might be throwing compress tasks into a process and 
+letting the OS schedule them.
 * the native-image also has significantly less futex calls and waits,
 which futher indicates that graalvm could throwing threads into processes
 with a socket straight to the write channel. This could explain the excessive
 openat, close, sockst, execve, mmap, calls.
 
 Stack Traces in Relation to Times noted above.
-The stack traces back up the above notions, in particular Pigzj. further,
+The stack traces back up the above notions, in particular Pigzj. Further,
 multi-threaded implementations rely less on moving physical bytes around
 and more on memory operations which helps keep the io bus open for
 business.
