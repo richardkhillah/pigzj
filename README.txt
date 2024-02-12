@@ -150,7 +150,7 @@ pigzj   67.6%
 
 Note:
 
-Much of the design is based off Mess Admin's. I thought the overal
+Much of the design is based off Mess Admin's. I thought the overall
 structure, while tough to look at blindly, was decently laid out.
 In my implementation of Pigzj, I did not include all extended classes,
 I altered dependencies between modules, changed configuration parameters,
